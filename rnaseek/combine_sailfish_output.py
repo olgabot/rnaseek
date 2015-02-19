@@ -3,7 +3,7 @@
 __author__ = 'olga'
 
 import argparse
-from glob import glob
+from glob import iglob
 import os
 import sys
 
@@ -19,7 +19,7 @@ class CommandLine(object):
                                  'Default is folders in the current directory '
                                  'whose names end with "sailfish"')
         parser.add_argument('-o', '--out-dir', required=False,
-                            default='combined_output', type=str,
+                            default='./combined_output', type=str,
                             action='store',
                             help='Where to output the combined matrices. Does '
                                  'not need to exist already. '
@@ -81,11 +81,13 @@ class CombineSailfish(object):
                    'EstimatedNumKmers', 'EstimatedNumReads']
 
         glob_command = '{}/quant_bias_corrected.sf'.format(glob_command)
-        filenames = glob(glob_command)
-        n_files = len(filenames)
-
+        filenames = iglob(glob_command)
+        n_files = sum(1 for i in filenames)
         sys.stdout.write("Reading {} of sailfish's quant_bias_corrected.sf "
                          "files ...\n".format(n_files))
+
+        # re-initialize iterator
+        filenames = iglob(glob_command)
 
         for i, filename in enumerate(filenames):
             # Read "tabluar" data, separated by tabs.
