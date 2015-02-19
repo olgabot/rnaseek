@@ -130,7 +130,6 @@ class CombineSailfish(object):
         tpm_transcripts.columns = ensembl_ids
         tpm_genes = tpm_transcripts.groupby(level=0, axis=1).sum()
         sys.stdout.write("\tDone.\n")
-        import pdb;pdb.set_trace()
 
         # Save the output files
         filename_to_df = {'tpm_spikein.csv': tpm_spikein,
