@@ -143,7 +143,7 @@ class CombineSailfish(object):
             full_filename = '{}/{}'.format(out_dir, filename)
             df.to_csv(full_filename)
             sys.stdout.write("\tWrote {}\n".format(full_filename))
-        sys.stdout.write("\tDone, son.\n")
+        sys.stdout.write("Done, son.\n")
 
 
 if __name__ == '__main__':
