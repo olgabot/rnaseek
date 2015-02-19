@@ -25,6 +25,13 @@ class CommandLine(object):
                                  'not need to exist already. '
                                  'Default is to create a folder called '
                                  '"combined_input"')
+        parser.add_argument('-n', '--n-progress', required=False, type=int,
+                            default=10, action='store',
+                            help="Number of files to show per iterative "
+                                 "progress, e.g. 10/58 files completed, "
+                                 "20/58 files completed. Can increase this if"
+                                 "you have thousands of files, or decrease to"
+                                 "1 if you only have a few")
         if inOpts is None:
             self.args = vars(self.parser.parse_args())
         else:
@@ -55,11 +62,14 @@ class Usage(Exception):
 
 
 class CombineSailfish(object):
-    def __init__(self, glob_command, out_dir):
+    def __init__(self, glob_command, out_dir, n_progress):
         """Any CamelCase here is directly copied from the STAR inputs for
         complete compatibility
         """
         # Make the directory if it's not there already
+        if n_progress < 1:
+            raise ValueError('"n_progress" must be 1 or greater')
+
         out_dir = os.path.abspath(os.path.expanduser(out_dir))
         try:
             os.mkdir(out_dir)
@@ -100,7 +110,7 @@ class CombineSailfish(object):
             tpm.name = sample_id
             tpm_dfs.append(tpm)
 
-            if (i+1) % 10 == 0:
+            if (i+1) % n_progress == 0:
                 sys.stdout.write("\t{}/{} files read\n".format(i+1, n_files))
         sys.stdout.write("\tDone.\n")
         tpm = pd.concat(tpm_dfs, axis=1)
@@ -140,6 +150,9 @@ if __name__ == '__main__':
     try:
         cl = CommandLine()
 
-        CombineSailfish(cl.args['glob_command'], cl.args['out_dir'])
+
+
+        CombineSailfish(cl.args['glob_command'], cl.args['out_dir'],
+                        cl.args['n_progress'])
     except Usage, err:
         cl.do_usage_and_die()
