@@ -84,7 +84,7 @@ class CombineSailfish(object):
         filenames = glob(glob_command)
         n_files = len(filenames)
 
-        sys.stdout.write("Reading {} sailfish's quant_bias_corrected.sf "
+        sys.stdout.write("Reading {} of sailfish's quant_bias_corrected.sf "
                          "files ...\n".format(n_files))
 
         for i, filename in enumerate(filenames):
