@@ -123,8 +123,8 @@ class CombineSailfish(object):
 
         sys.stdout.write("Summing TPM expression of all transcripts in a "
                          "gene ... "
-                         "\t(Don't worry, both gene-level and transcript-level"
-                         "expression will be saved.)\n")
+                         "\n\t(Don't worry, both gene-level and "
+                         "transcript-level expression will be saved.)\n")
         # Sum expression of all transcripts of a gene
         tpm_transcripts = tpm.ix[:, ~spikein_columns]
         ensembl_ids = tpm_transcripts.columns.map(
