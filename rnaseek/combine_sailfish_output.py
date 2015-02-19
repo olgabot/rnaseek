@@ -106,14 +106,14 @@ class CombineSailfish(object):
             # via "[0]"
             sample_id = filename.split('/')[-2].split('.')[0]
 
-            # Change the name of the
+            # Change the name of the series to the sample id
             tpm.name = sample_id
             tpm_dfs.append(tpm)
 
             if (i+1) % n_progress == 0:
                 sys.stdout.write("\t{}/{} files read\n".format(i+1, n_files))
         sys.stdout.write("\tDone.\n")
-        tpm = pd.concat(tpm_dfs, axis=1)
+        tpm = pd.concat(tpm_dfs, axis=0)
 
         sys.stdout.write("Separating out spike-ins from regular genes ...\n")
         # Get nonstandard genes, i.e. everything that's not an ensembl ID
