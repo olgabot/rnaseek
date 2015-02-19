@@ -19,7 +19,7 @@ class CommandLine(object):
                                  'Default is folders in the current directory '
                                  'whose names end with "sailfish"')
         parser.add_argument('-o', '--out-dir', required=False,
-                            default='combined_output', type='str',
+                            default='combined_output', type=str,
                             action='store',
                             help='Where to output the combined matrices. Does '
                                  'not need to exist already. '
