@@ -75,7 +75,7 @@ class CombineSailfish(object):
         n_files = len(filenames)
 
         sys.stdout.write("Reading {} sailfish's quant_bias_corrected.sf "
-                         "files ...".format(n_files))
+                         "files ...\n".format(n_files))
 
         for i, filename in enumerate(filenames):
             # Read "tabluar" data, separated by tabs.
@@ -101,29 +101,39 @@ class CombineSailfish(object):
             tpm_dfs.append(tpm)
 
             if (i+1) % 10 == 0:
-                sys.stdout.write("\t{}/{} files read".format(i+1, n_files))
+                sys.stdout.write("\t{}/{} files read\n".format(i+1, n_files))
+        sys.stdout.write("\tDone.\n")
         tpm = pd.concat(tpm_dfs, axis=1)
 
+        sys.stdout.write("Separating out spike-ins from regular genes ...\n")
         # Get nonstandard genes, i.e. everything that's not an ensembl ID
         spikein_columns = tpm.columns.map(lambda x: not x.startswith('ENST'))
         tpm_spikein = tpm.ix[:, spikein_columns]
+        sys.stdout.write("\tDone.\n")
 
+        sys.stdout.write("Summing TPM expression of all transcripts in a "
+                         "gene ... "
+                         "\t(Don't worry, both gene-level and transcript-level"
+                         "expression will be saved.)\n")
         # Sum expression of all transcripts of a gene
         tpm_transcripts = tpm.ix[:, ~spikein_columns]
         ensembl_ids = tpm_transcripts.columns.map(
             lambda x: x.split('|')[1].split('.')[0])
         tpm_transcripts.columns = ensembl_ids
         tpm_genes = tpm_transcripts.groupby(level=0, axis=1).sum()
+        sys.stdout.write("\tDone.\n")
 
         # Save the output files
         filename_to_df = {'tpm_spikein.csv': tpm_spikein,
                           'tpm_genes.csv': tpm_genes,
                           'tpm_transcripts.csv': tpm_transcripts}
 
+        sys.stdout.write("Writing output files ...\n")
         for filename, df in filename_to_df.items():
             full_filename = '{}/{}'.format(out_dir, filename)
             df.to_csv(full_filename)
-            sys.stdout.write("Wrote {}".format(full_filename))
+            sys.stdout.write("\tWrote {}\n".format(full_filename))
+        sys.stdout.write("\tDone, son.\n")
 
 
 if __name__ == '__main__':
