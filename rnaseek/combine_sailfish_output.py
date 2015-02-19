@@ -113,7 +113,7 @@ class CombineSailfish(object):
             if (i+1) % n_progress == 0:
                 sys.stdout.write("\t{}/{} files read\n".format(i+1, n_files))
         sys.stdout.write("\tDone.\n")
-        tpm = pd.concat(tpm_dfs, axis=1).T
+        tpm = pd.concat(tpm_dfs, axis=1).T.sort_index()
 
         sys.stdout.write("Separating out spike-ins from regular genes ...\n")
         # Get nonstandard genes, i.e. everything that's not an ensembl ID
