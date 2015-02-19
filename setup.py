@@ -12,17 +12,20 @@ readme = open('README.rst').read()
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 requirements = [
-    # TODO: put package requirements here
+    'pandas',
 ]
 
 test_requirements = [
     # TODO: put package test requirements here
 ]
 
+scripts = ['rnaseek/combine_sailfish_output.py']
+
 setup(
     name='rnaseek',
     version='0.1.0',
-    description='Library for parsing, aggregating, and overall dealing with outputs from RNA-sequencing data files',
+    description='Library for parsing, aggregating, and overall dealing with '
+                'outputs from RNA-sequencing data files',
     long_description=readme + '\n\n' + history,
     author='Olga Botvinnik',
     author_email='olga.botvinnik@gmail.com',
@@ -30,6 +33,7 @@ setup(
     packages=[
         'rnaseek',
     ],
+    scripts=scripts,
     package_dir={'rnaseek':
                  'rnaseek'},
     include_package_data=True,
