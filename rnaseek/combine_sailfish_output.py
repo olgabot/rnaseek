@@ -3,7 +3,7 @@
 __author__ = 'olga'
 
 import argparse
-from glob import iglob
+from glob import glob
 import os
 import sys
 
@@ -71,8 +71,13 @@ class CombineSailfish(object):
                    'EstimatedNumKmers', 'EstimatedNumReads']
 
         glob_command = '{}/quant_bias_corrected.sf'.format(glob_command)
+        filenames = glob(glob_command)
+        n_files = len(filenames)
 
-        for filename in iglob(glob_command):
+        sys.stdout.write("Reading {} sailfish's quant_bias_corrected.sf "
+                         "files ...".format(n_files))
+
+        for i, filename in enumerate(filenames):
             # Read "tabluar" data, separated by tabs.
             # Arguments:
             # skiprows=5      Skip the first 5 rows
@@ -94,6 +99,9 @@ class CombineSailfish(object):
             # Change the name of the
             tpm.name = sample_id
             tpm_dfs.append(tpm)
+
+            if (i+1) % 10 == 0:
+                sys.stdout.write("\t{}/{} files read".format(i+1, n_files))
         tpm = pd.concat(tpm_dfs, axis=1)
 
         # Get nonstandard genes, i.e. everything that's not an ensembl ID
