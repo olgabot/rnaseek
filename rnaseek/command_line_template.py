@@ -2,50 +2,36 @@
 
 __author__ = 'olga'
 
-from gscripts.qtools import Submitter
 import argparse
+from glob import glob
 import os
+import sys
 
+import pandas as pd
 
 class CommandLine(object):
     def __init__(self, inOpts=None):
         self.parser = parser = argparse.ArgumentParser(
-            description='Generate a STAR genome index from fasta files')
-        parser.add_argument('-g', '--genomeFastaFiles', required=True,
-                            type=str, action='store',
-                            help='Fasta files of the genome you want to index using '
-                                 'STAR.')
-        parser.add_argument('-o', '--genomeDir', required=True, type=str,
+            description='Combine sailfish output files')
+        parser.add_argument('-g', '--glob-command', required=False,
+                            default='*sailfish', type=str, action='store',
+                            help='Where to find sailfish output directories. '
+                                 'Default is folders in the current directory '
+                                 'whose names end with "sailfish"')
+        parser.add_argument('-o', '--out-dir', required=False,
+                            default='combined_output', type=str,
                             action='store',
-                            help='Where you want to save the generated genome')
-        parser.add_argument('-n', '--name', default='genomeGenerate',
-                            action='store', type=str,
-                            help='The name of the submitted job in the queue')
-        sjdb = parser.add_mutually_exclusive_group(required=False)
-        sjdb.add_argument('--sjdbFileChrStartEnd', default='',
-                          type=str, action='store',
-                          help='A bed-file-like splice junction file, for example the '
-                               'SJ.out.tab file produced by STAR')
-        sjdb.add_argument('--sjdbGTFfile', default='',
-                          type=str, action='store',
-                          help='A GTF file to create a splice junction database from')
-        parser.add_argument('--sjdbOverhang', default=100, type=str,
-                            action='store',
-                            help='Number of bases to overhang for the splice '
-                                 'junctions. Ideally should be the (length of '
-                                 'one read)-1')
-        parser.add_argument('--out-sh', action='store', type=str,
-                            required=False,
-                            help='The sh file written and submitted to the '
-                                 'cluster')
-        parser.add_argument('--do-not-submit', required=False,
-                            action='store_true', default=False,
-                            help='Flag to not actually submit the job but '
-                                 'just write the sh file (for testing)')
-        parser.add_argument('--queue-type', required=False, type=str,
-                            action='store', default='PBS',
-                            help='Type of the queue to submit to. For testing '
-                                 'purposes on non-server devices, e.g. laptops')
+                            help='Where to output the combined matrices. Does '
+                                 'not need to exist already. '
+                                 'Default is to create a folder called '
+                                 '"combined_input"')
+        parser.add_argument('-n', '--n-progress', required=False, type=int,
+                            default=10, action='store',
+                            help="Number of files to show per iterative "
+                                 "progress, e.g. 10/58 files completed, "
+                                 "20/58 files completed. Can increase this if"
+                                 "you have thousands of files, or decrease to"
+                                 "1 if you only have a few")
         if inOpts is None:
             self.args = vars(self.parser.parse_args())
         else:
@@ -75,46 +61,95 @@ class Usage(Exception):
         self.msg = msg
 
 
-class GenomeGenerate(object):
-    def __init__(self, genomeDir, genomeFastaFiles, sjdb,
-                 sjdbOverhang, job_name, out_sh=None, submit=True):
+class CombineSailfish(object):
+    def __init__(self, glob_command, out_dir, n_progress):
         """Any CamelCase here is directly copied from the STAR inputs for
         complete compatibility
         """
         # Make the directory if it's not there already
+        if n_progress < 1:
+            raise ValueError('"n_progress" must be 1 or greater')
+
+        out_dir = os.path.abspath(os.path.expanduser(out_dir))
         try:
-            os.mkdir(genomeDir)
+            os.mkdir(out_dir)
         except OSError:
             pass
 
-        commands = []
-        commands.append('STAR --runMode genomeGenerate --genomeDir {0} '
-                        '--genomeFastaFiles {1} --runThreadN 16 {2} '
-                        '--sjdbOverhang {3}'.format(
-            genomeDir, genomeFastaFiles, sjdb, sjdbOverhang))
+        tpm_dfs = []
+        columns = ['transcript', 'length', 'tpm', 'rpkm', 'kpkm',
+                   'EstimatedNumKmers', 'EstimatedNumReads']
 
-        sub = Submitter(queue_type='PBS', sh_filename=out_sh,
-                        commands=commands,
-                        job_name=job_name, nodes=1, ppn=16, queue='home',
-                        walltime='4:00:00')
-        sub.job(submit=submit)
+        glob_command = '{}/quant_bias_corrected.sf'.format(glob_command)
+        filenames = glob(glob_command)
+        n_files = len(filenames)
+
+        sys.stdout.write("Reading {} of sailfish's quant_bias_corrected.sf "
+                         "files ...\n".format(n_files))
+
+        for i, filename in enumerate(filenames):
+            # Read "tabluar" data, separated by tabs.
+            # Arguments:
+            # skiprows=5      Skip the first 5 rows
+            # names=columns   Use the column names in the list "columns"
+            # index_col=0     The first column is the row names (the row names
+            #                 are called the "index" in pandas terms)
+            df = pd.read_table(filename, skiprows=5, names=columns,
+                               index_col=0)
+
+            # Get the "series" (aka single column) of TPM
+            tpm = df.tpm
+
+            # To get the sample ID, split by the folder identifier, "/",
+            # and take the second-to-last item (via "[-2]"), which has the
+            # sample id, then split on the period, and take the first item
+            # via "[0]"
+            sample_id = filename.split('/')[-2].split('.')[0]
+
+            # Change the name of the series to the sample id
+            tpm.name = sample_id
+            tpm_dfs.append(tpm)
+
+            if (i+1) % n_progress == 0:
+                sys.stdout.write("\t{}/{} files read\n".format(i+1, n_files))
+        sys.stdout.write("\tDone.\n")
+        tpm = pd.concat(tpm_dfs, axis=1).T.sort_index()
+
+        sys.stdout.write("Separating out spike-ins from regular genes ...\n")
+        # Get nonstandard genes, i.e. everything that's not an ensembl ID
+        spikein_columns = tpm.columns.map(lambda x: not x.startswith('ENST'))
+        tpm_spikein = tpm.ix[:, spikein_columns]
+        sys.stdout.write("\tDone.\n")
+
+        sys.stdout.write("Summing TPM expression of all transcripts in a "
+                         "gene ...\n")
+        # Sum expression of all transcripts of a gene
+        tpm_transcripts = tpm.ix[:, ~spikein_columns]
+        ensembl_ids = tpm_transcripts.columns.map(
+            lambda x: x.split('|')[1].split('.')[0])
+        tpm_transcripts.columns = ensembl_ids
+        tpm_genes = tpm_transcripts.groupby(level=0, axis=1).sum()
+        sys.stdout.write("\tDone.\n")
+
+        # Save the output files
+        filename_to_df = {'tpm_spikein.csv': tpm_spikein,
+                          'tpm_genes.csv': tpm_genes}
+
+        sys.stdout.write("Writing output files ...\n")
+        for filename, df in filename_to_df.items():
+            full_filename = '{}/{}'.format(out_dir, filename)
+            df.to_csv(full_filename)
+            sys.stdout.write("\tWrote {}\n".format(full_filename))
+        sys.stdout.write("Done, son.\n")
 
 
 if __name__ == '__main__':
     try:
         cl = CommandLine()
 
-        job_name = cl.args['name']
-        out_sh = name = job_name + '.sh' if cl.args['out_sh'] is None \
-            else cl.args['out_sh']
-        submit = not cl.args['do_not_submit']
 
-        sjdb_arguments = ['sjdbGTFfile', 'sjdbFileChrStartEnd']
 
-        sjdb = ''.join('--{} {}'.format(k, cl.args[k]) for k in sjdb_arguments
-                       if cl.args[k])
-        GenomeGenerate(cl.args['genomeDir'], cl.args['genomeFastaFiles'], sjdb,
-                       cl.args['sjdbOverhang'], job_name, out_sh,
-                       submit=submit)
+        CombineSailfish(cl.args['glob_command'], cl.args['out_dir'],
+                        cl.args['n_progress'])
     except Usage, err:
         cl.do_usage_and_die()
