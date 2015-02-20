@@ -104,13 +104,6 @@ class CombineMiso(object):
             Integer step size to show progress. E.g. for 10/58 completed
 
         """
-        print 'glob_command', glob_command
-        print 'out_dir', out_dir
-        print 'n_progress', n_progress
-        print 'ci_max', ci_max
-        print 'per_isoform_reads_min', per_isoform_reads_min
-        print 'downsampled', downsampled
-
         out_dir = out_dir.rstrip('/')
         out_dir = os.path.abspath(os.path.expanduser(out_dir))
 
@@ -150,9 +143,6 @@ class CombineMiso(object):
                     sys.stdout.write('\t{}\t{}\t{}\t{}\n'.format(i, real_id,
                                                                  probability,
                                                                  iteration))
-                else:
-                    real_id = filename
-                    sys.stdout.write('\tdownsampled: {}\t{}\n'.format(i, real_id))
 
                 df['sample_id'] = sample_id
                 df['splice_type'] = splice_type
@@ -398,8 +388,6 @@ class CombineMiso(object):
 if __name__ == '__main__':
     try:
         cl = CommandLine()
-        print 'cl.args', cl.args
-
         CombineMiso(cl.args['glob_command'], cl.args['out_dir'],
                         cl.args['n_progress'], cl.args['ci_max'],
                         cl.args['per_isoform_reads_min'],
