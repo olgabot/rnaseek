@@ -90,7 +90,7 @@ class Usage(Exception):
 class CombineMiso(object):
     def __init__(self, glob_command, out_dir='./combined_outputs',
                  n_progress=10, ci_max=0.5,
-                 per_isoform_counts_min=10, downsampled=False):
+                 per_isoform_reads_min=10, downsampled=False):
         """Combine MISO output files and write to disk
 
         Parameters
@@ -104,6 +104,13 @@ class CombineMiso(object):
             Integer step size to show progress. E.g. for 10/58 completed
 
         """
+        print 'glob_command', glob_command
+        print 'out_dir', out_dir
+        print 'n_progress', n_progress
+        print 'ci_max', ci_max
+        print 'per_isoform_reads_min', per_isoform_reads_min
+        print 'downsampled', downsampled
+
         out_dir = out_dir.rstrip('/')
         out_dir = os.path.abspath(os.path.expanduser(out_dir))
 
@@ -175,9 +182,9 @@ class CombineMiso(object):
 
         sys.stdout.write("Filtering MISO summaries with ci_max={}, "
                          "per_isoform_counts={} ...\n".format(
-            ci_max, per_isoform_counts_min))
+            ci_max, per_isoform_reads_min))
         summary = self.filter_miso_summary(summary, ci_max,
-                                           per_isoform_counts_min)
+                                           per_isoform_reads_min)
         sys.stdout.write("\tDone.\n")
 
         if downsampled:
