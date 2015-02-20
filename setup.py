@@ -16,7 +16,8 @@ requirements = [
 ]
 
 test_requirements = [
-    # TODO: put package test requirements here
+    'pyflakes',
+    'tox'
 ]
 
 scripts = ['rnaseek/combine_sailfish_output.py',
