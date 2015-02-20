@@ -21,7 +21,9 @@ test_requirements = [
 ]
 
 scripts = ['rnaseek/combine_sailfish_output.py',
-           'rnaseek/combine_miso_output.py']
+           'rnaseek/combine_miso_output.py',
+           'rnaseek/combine_star_mapping_stats.py',
+           ]
 
 setup(
     name='rnaseek',
