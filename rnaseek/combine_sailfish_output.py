@@ -63,13 +63,22 @@ class Usage(Exception):
 
 class CombineSailfish(object):
     def __init__(self, glob_command, out_dir, n_progress):
-        """Any CamelCase here is directly copied from the STAR inputs for
-        complete compatibility
+        """Combine sailfish output files and write them to disk
+
+        Parameters
+        ----------
+        glob_command : str
+            Where to find sailfish output directories
+        out_dir : str
+            Where to output the combined matrices. Will be created if it
+            doesn't exist
+        n_progress : int
+            Integer step size to show progress. E.g. for 10/58 completed
         """
-        # Make the directory if it's not there already
         if n_progress < 1:
             raise ValueError('"n_progress" must be 1 or greater')
 
+        # Make the directory if it's not there already
         out_dir = os.path.abspath(os.path.expanduser(out_dir))
         try:
             os.mkdir(out_dir)
