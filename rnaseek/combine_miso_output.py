@@ -207,7 +207,7 @@ class CombineMiso(object):
         if not downsampled:
             sys.stdout.write("Creating ((event_name, splice_type), samples) "
                              "PSI matrix ...\n")
-            psi = summary.pivot_table(rows=('event_name', 'splice_type'),
+            psi = summary.pivot_table(index=('event_name', 'splice_type'),
                                       columns='sample_id',
                                       values='miso_posterior_mean')
             psi.to_csv('{}/psi.csv'.format(out_dir))
