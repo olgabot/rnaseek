@@ -124,9 +124,11 @@ class CombineMiso(object):
         # re-initialize iterator
         filenames = iglob(glob_command)
 
+        n_files_true = 0
         for i, filename in enumerate(filenames):
             # Check that more than just the header is there
             if os.path.getsize(filename) > 113:
+                n_files_true += 1
                 df = self.read_miso_summary(filename)
 
                 splice_type = os.path.basename(filename).split('.')[0]
@@ -152,15 +154,37 @@ class CombineMiso(object):
                     df['iteration'] = iteration
 
                 dfs.append(df.reset_index())
+                if (i + 1) % n_progress == 0:
+                    sys.stdout.write(
+                        "\t{}/{} files attempted to read\n".format(i + 1, n_files))
+            else:
+                sys.stdout.write("\tOnly found header and an empty table for "
+                                 "{}\n".format(filename))
+        sys.stdout.write("\tDone.\n")
 
+        sys.stdout.write("Merging all {} MISO summaries into a gigantic "
+                         "one ...\n".format(n_files_true))
         summary = pd.concat(dfs)
-        summary.to_csv('{}/miso_summary_raw.csv'.format(out_dir))
+        sys.stdout.write("\tDone.\n")
 
+        sys.stdout.write("Writing raw MISO summary files ...\n")
+        csv = '{}/miso_summary_raw.csv'.format(out_dir)
+        summary.to_csv(csv)
+        sys.stdout.write("\tWrote {}\n".format(csv))
+
+        sys.stdout.write("Filtering MISO summaries with ci_max={}, "
+                         "per_isoform_counts={} ...\n".format(
+            ci_max, per_isoform_counts_min))
         summary = self.filter_miso_summary(summary, ci_max,
                                            per_isoform_counts_min)
+        sys.stdout.write("\tDone.\n")
 
         if downsampled:
+            sys.stdout.write("Sorting downsampled files by probability "
+                             "and iteration...\n")
             summary = summary.sort(columns=['probability', 'iteration'])
+            sys.stdout.write("\tDone.\n")
+
             summary.index = np.arange(summary.shape[0])
 
             def remove_inconsistent(x, thresh=0.8):
@@ -171,15 +195,25 @@ class CombineMiso(object):
                 return x.groupby('iteration').filter(
                     lambda y: len(y) > (thresh * size.mean()))
 
+            sys.stdout.write("Removing iterations that had too few "
+                             "events ...\n")
             summary = summary.groupby(['splice_type', 'probability']).apply(
                 remove_inconsistent)
-        summary.to_csv('{}/miso_summary_filtered.csv'.format(out_dir))
+            sys.stdout.write("\tDone.\n")
+
+        sys.stdout.write("Writing filtered MISO summary files ...\n")
+        csv = '{}/miso_summary_filtered.csv'.format(out_dir)
+        summary.to_csv(csv)
+        sys.stdout.write("\tWrote {}\n".format(csv))
 
         if not downsampled:
+            sys.stdout.write("Creating ((event_name, splice_type), samples) "
+                             "PSI matrix ...\n")
             psi = summary.pivot_table(rows=('event_name', 'splice_type'),
                                       cols='sample_id',
                                       values='miso_posterior_mean')
             psi.to_csv('{}/psi.csv'.format(out_dir))
+            sys.stdout.write("\tWrote {}\n".format(csv))
 
     @staticmethod
     def max_csv(x):
