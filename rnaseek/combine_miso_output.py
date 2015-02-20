@@ -44,7 +44,7 @@ class CommandLine(object):
                                  "confidence interval for the "
                                  "'percent-spliced-in' aka PSI score of a "
                                  "splicing event")
-        parser.add_argument('--per-isoform-counts-min', required=False,
+        parser.add_argument('--per-isoform-reads-min', required=False,
                             type=int, default=10, action='store',
                             help="Used for filtering. Minimum number of reads"
                                  "that MISO deemed unique to one isoform, for "
@@ -88,8 +88,8 @@ class Usage(Exception):
 
 class CombineMiso(object):
     def __init__(self, glob_command, out_dir='./combined_outputs',
-                 n_progress=10, downsampled=False, ci_max=0.5,
-                 per_isoform_counts_min=10):
+                 n_progress=10, ci_max=0.5,
+                 per_isoform_counts_min=10, downsampled=False, ):
         """Combine MISO output files and write to disk
 
         Parameters
@@ -144,7 +144,7 @@ class CombineMiso(object):
                                                                  iteration))
                 else:
                     real_id = filename
-                    sys.stdout.write('\t{}\t{}\n'.format(i, real_id))
+                    sys.stdout.write('\tdownsampled: {}\t{}\n'.format(i, real_id))
 
                 df['sample_id'] = sample_id
                 df['splice_type'] = splice_type
@@ -337,7 +337,7 @@ class CombineMiso(object):
 
 
     def filter_miso_summary(self, summary, ci_max=0.5,
-                            per_isoform_counts_min=10):
+                            per_isoform_reads_min=10):
         """Filter a MISO summary on confidence intervals and read depth
 
         This filters on the maximum confidence interval size and number of
@@ -349,7 +349,7 @@ class CombineMiso(object):
             A "tall" dataframe of all samples and splice types
         ci_max : float, optional
             Maximum confidence interval size of the percent spliced in value
-        per_isoform_counts_min : int, optional
+        per_isoform_reads_min : int, optional
 
         Returns
         -------
@@ -370,7 +370,7 @@ class CombineMiso(object):
 
         # Filter on at least 10 "junction reads"
         summary = summary.ix[
-            specific_isoform_counts >= per_isoform_counts_min]
+            specific_isoform_counts >= per_isoform_reads_min]
         after_counts_events = summary.shape[0]
 
         # Set the index as just the range now that we've filtered everything
@@ -383,7 +383,7 @@ class CombineMiso(object):
             ' {} events removed with too few reads are unique'
             ' to individual isoforms (n < {})\n'.format(
                 after_counts_events - after_ci_events,
-                per_isoform_counts_min))
+                per_isoform_reads_min))
         return summary
 
 
@@ -392,6 +392,8 @@ if __name__ == '__main__':
         cl = CommandLine()
 
         CombineMiso(cl.args['glob_command'], cl.args['out_dir'],
-                        cl.args['n_progress'], cl.args['ci_max'])
+                        cl.args['n_progress'], cl.args['ci_max'],
+                        cl.args['per_isoform_reads_min'],
+                        cl.args['downsampled'])
     except Usage, err:
         cl.do_usage_and_die()
