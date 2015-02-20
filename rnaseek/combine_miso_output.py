@@ -37,7 +37,7 @@ class CommandLine(object):
                                  "progress, e.g. 10/58 files completed, "
                                  "20/58 files completed. Can increase this if"
                                  "you have thousands of files, or decrease to"
-                                 "1 if you only have a few")
+                                 " 1 if you only have a few")
         parser.add_argument('--ci-max', required=False, type=float,
                             default=0.5, action='store',
                             help="Used for filtering. Maximum size of the "
@@ -56,7 +56,8 @@ class CommandLine(object):
                                  'reads, and assumes your summary files are '
                                  'located in,'
                                  '<current_directory>/miso/<sample_id>_prob<p>'
-                                 '_iter<i>/<splice_type>/summary/')
+                                 '_iter<i>/<splice_type>/summary/<splice_type>'
+                                 '.miso_summary')
         if inOpts is None:
             self.args = vars(self.parser.parse_args())
         else:
@@ -89,7 +90,7 @@ class Usage(Exception):
 class CombineMiso(object):
     def __init__(self, glob_command, out_dir='./combined_outputs',
                  n_progress=10, ci_max=0.5,
-                 per_isoform_counts_min=10, downsampled=False, ):
+                 per_isoform_counts_min=10, downsampled=False):
         """Combine MISO output files and write to disk
 
         Parameters
@@ -390,10 +391,11 @@ class CombineMiso(object):
 if __name__ == '__main__':
     try:
         cl = CommandLine()
+        print 'cl.args', cl.args
 
         CombineMiso(cl.args['glob_command'], cl.args['out_dir'],
                         cl.args['n_progress'], cl.args['ci_max'],
                         cl.args['per_isoform_reads_min'],
-                        cl.args['downsampled'])
+                        downsampled=cl.args['downsampled'])
     except Usage, err:
         cl.do_usage_and_die()
