@@ -32,7 +32,7 @@ class CommandLine(object):
                                  'Default is to create a folder called '
                                  '"combined_input"')
         parser.add_argument('-n', '--n-progress', required=False, type=int,
-                            default=10, action='store',
+                            default=100, action='store',
                             help="Number of files to show per iterative "
                                  "progress, e.g. 10/58 files completed, "
                                  "20/58 files completed. Can increase this if"
@@ -89,7 +89,7 @@ class Usage(Exception):
 
 class CombineMiso(object):
     def __init__(self, glob_command, out_dir='./combined_outputs',
-                 n_progress=10, ci_max=0.5,
+                 n_progress=100, ci_max=0.5,
                  per_isoform_reads_min=10, downsampled=False):
         """Combine MISO output files and write to disk
 
