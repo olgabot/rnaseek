@@ -19,7 +19,8 @@ test_requirements = [
     # TODO: put package test requirements here
 ]
 
-scripts = ['rnaseek/combine_sailfish_output.py']
+scripts = ['rnaseek/combine_sailfish_output.py',
+           'rnaseek/combine_miso_output.py']
 
 setup(
     name='rnaseek',
