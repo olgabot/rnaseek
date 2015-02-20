@@ -50,7 +50,7 @@ class CommandLine(object):
                                  "that MISO deemed unique to one isoform, for "
                                  "that splicing event to pass filtering.")
         parser.add_argument('--downsampled', required=False,
-                            action='store_true',
+                            action='store_true', default=False,
                             help='If given, then assumed that the samples '
                                  'were downsampled at certain numbers of '
                                  'reads, and assumes your summary files are '
