@@ -114,6 +114,42 @@ Writing output files ...
 Done, son.
 ```
 
+### Combine [STAR](https://github.com/alexdobin/STAR/releases) `Log.final.out` mapping stats files
+
+Run this from the directory where you have folders containing STAR output files.
+To keep the user informed, this program outputs progress in addition to 
+writing files.
+
+For simplicity, this assumes a few things:
+
+- Your output files are located,
+
+```
+*Log.final.out
+```
+
+
+
+Example output
+
+```
+$ combine_star_mapping_stats.py 
+Reading 63 of STAR's *Log.final.out files ...
+        10/63 files read
+        20/63 files read
+        30/63 files read
+        40/63 files read
+        50/63 files read
+        60/63 files read
+        Done.
+Merging STAR outputs into a single dataframe...
+        Done.
+Adding percentages of splicing events ...
+        Done.
+Writing mapping stats ...
+        Wrote /oasis/tscc/scratch/obotvinnik/projects/singlecell_pnms/analysis/singlecell_pnms_se_v4/combined_output/mapping_stats.csv
+```
+
 ### Combine [MISO](http://genes.mit.edu/burgelab/miso/) output files
 
 Run this in the directory containing a folder called `miso` which has all your
