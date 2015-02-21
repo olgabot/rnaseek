@@ -132,7 +132,6 @@ class CombineSTARLogFinalOut(object):
         percent_splicing_event_names = [x.replace('Number of', '%')
                                         for x in number_splicing_event_names]
 
-        import pdb; pdb.set_trace()
         total_splicing_events = mapping_stats.ix['Number of splices: Total',
                                 :].replace(0, np.nan).values.astype(float)
 
@@ -153,7 +152,7 @@ class CombineSTARLogFinalOut(object):
 
         sys.stdout.write("Writing mapping stats ...\n")
         df.to_csv(csv)
-        sys.stdout.write("\tWrote {}".format(csv))
+        sys.stdout.write("\tWrote {}\n".format(csv))
 
     @staticmethod
     def maybe_convert_to_float(x):
