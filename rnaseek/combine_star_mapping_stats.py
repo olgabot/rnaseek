@@ -105,6 +105,8 @@ class CombineSTARLogFinalOut(object):
 
         for i, filename in enumerate(filenames):
             s = pd.read_table(filename, header=None, index_col=0, squeeze=True)
+            s.index = s.index.map(
+                lambda x: x.rstrip(' |').rstrip(':').rstrip().lstrip())
             converted = [self.maybe_convert_to_float(x.strip('%'))
                          if type(x) != float else x for x in s]
             sample_id = os.path.basename(filename).split('.')[0]
