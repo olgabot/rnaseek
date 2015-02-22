@@ -210,7 +210,8 @@ class CombineMiso(object):
             psi = summary.pivot_table(index=('event_name', 'splice_type'),
                                       columns='sample_id',
                                       values='miso_posterior_mean')
-            psi.to_csv('{}/psi.csv'.format(out_dir))
+            csv = '{}/psi.csv'.format(out_dir)
+            psi.to_csv(csv)
             sys.stdout.write("\tWrote {}\n".format(csv))
 
     @staticmethod
