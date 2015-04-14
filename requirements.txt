@@ -1,2 +1,5 @@
 wheel==0.23.0
 pandas
+biopython
+pybedtools
+gffutils
