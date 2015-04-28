@@ -474,10 +474,8 @@ class SpliceAnnotator(object):
         ------
 
         """
-        isoform1_seqs = []
-        isoform2_seqs = []
-        isoform1_translations = defaultdict(list)
-        isoform2_translations = defaultdict(list)
+        isoform_seqs = defaultdict(list)
+        isoform_translations = defaultdict(lambda: defaultdict(list))
 
         for exon_ids, miso_id, exon_seqs in zip(self.exon_ids, self.miso_ids,
                                                 self.exon_fasta):
@@ -508,6 +506,7 @@ class SpliceAnnotator(object):
             isoform2s = transcripts_per_isoform[1].difference(intersect)
             transcripts_per_isoform = isoform1s, isoform2s
 
+
             exon_seqs_per_isoform = self.splice_type_exons(exon_seqs)
 
             for i, (
@@ -515,11 +514,11 @@ class SpliceAnnotator(object):
                     transcripts_per_isoform, cds_ids_per_isoform,
                     exon_seqs_per_isoform):
                 event_isoform = '{}_isoform{}'.format(miso_id, i + 1)
-                name = '{}_{}'.format(event_isoform, isoform.id)
                 # Check if this is the reversed strand
                 reverse = exon_ids[0][-1] == '-'
 
                 for t in transcript_isoform:
+                    name = '{}_{}'.format(event_isoform, t.id)
                     cds = list(gffdb.children(t, featuretype='CDS',
                                               reverse=reverse,
                                               order_by='start'))
@@ -533,72 +532,20 @@ class SpliceAnnotator(object):
                                               cds_in_splice_form[1:]):
                         if i + 1 != j:
                             cds_in_correct_order = False
-                    if not cds_in_correct_order or not correct_number_of_cds:
-                        break
+                    if cds_in_correct_order and correct_number_of_cds:
+                        frame = cds[0].frame
+                        seq = ''.join(s.seq for s in exon_seqs_per_isoform)
+                        seq_translated = seq[int(frame):].translate()
+                        if seq_translated in isoform_translations[i]:
+                            continue
+                        seqrecord = SeqRecord(seq_translated, id=name,
+                                              description='')
+                        isoform_seqs[i].append(seqrecord)
+                        isoform_translations[i][t].append(seq_translated)
+                    else:
+                        isoform_translations[i][t].append('no translation')
 
-                    frame = cds[0].frame
-                    seq = ''.join(s.seq for s in exon_seqs_per_isoform)
-
-            for isoform in isoform1s:
-
-
-                cds_in_splice_form = [c for c in cds if
-                                      c.id.startswith(cds_id1)
-                                      or c.id.startswith(cds_id3)]
-                # print 'cds_in_splice_form', cds_in_splice_form
-
-                if len(cds_in_splice_form) == 2:
-                    frame1 = cds_in_splice_form[0].frame
-                    # frame3 = cds_in_splice_form[1].frame
-
-                    seq = seq1.seq + seq2.seq
-
-                    seq_translated = seq[int(frame1):].translate()
-                    if seq_translated in isoform1_translations[event_isoform]:
-                        continue
-
-                        #                 print 'name', name
-                    result_seq = SeqRecord(seq_translated, id=name,
-                                           description='')
-                    isoform1_seqs.append(result_seq)
-                    isoform1_translations[event_isoform].append(seq_translated)
-                else:
-                    isoform1_translations[event_isoform].append(
-                        'no translation')
-
-            for isoform in isoform2s:
-                event_isoform = '{}_isoform2'.format(miso_id)
-                name = '{}_{}'.format(event_isoform, isoform.id)
-                reverse = exon_id1[-1] == '-'
-                cds = gffdb.children(isoform, featuretype='CDS',
-                                     reverse=reverse, order_by='start')
-
-                cds_in_splice_form = [c for c in cds if c.id.startswith(
-                    cds_id1) or c.id.startswith(cds_id2) or c.id.startswith(
-                    cds_id3)]
-                # print 'cds_in_splice_form', cds_in_splice_form
-
-                if len(cds_in_splice_form) == 3:
-                    frame1 = cds_in_splice_form[0].frame
-                    frame2 = cds_in_splice_form[1].frame
-                    frame3 = cds_in_splice_form[2].frame
-
-                    seq = seq1.seq + seq2.seq + seq3.seq
-                    seq_translated = seq[int(frame1):].translate()
-                    if seq_translated in isoform2_translations[event_isoform]:
-                        continue
-
-                        #                 print 'name', name
-                    result_seq = SeqRecord(seq_translated, id=name,
-                                           description='')
-                    isoform2_seqs.append(result_seq)
-                    isoform2_translations[event_isoform].append(seq_translated)
-                    #                 isoform1_names.add(name)
-                else:
-                    isoform2_translations[event_isoform].append(
-                        'no translation')
-
-        return isoform1_seqs, isoform2_seqs
+        return isoform_seqs, isoform_translations
 
 
     def splice_type_exons(self, splice_type, exons):
