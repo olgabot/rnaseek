@@ -1,0 +1,3 @@
+
+class FastaAnnotator(object):
+    pass

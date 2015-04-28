@@ -1,0 +1,3 @@
+
+class BedAnnotator(object):
+    pass
