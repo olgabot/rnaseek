@@ -35,7 +35,7 @@ lint:
 	flake8 rnaseek tests
 
 test:
-	python setup.py test
+	py.test --doctest-modules
 
 test-all:
 	tox
