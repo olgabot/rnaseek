@@ -59,7 +59,7 @@ slick engineering.
             
             
 Given a translation, I want to be able to compute things similar to 
-[Carvunis et al, Nature (2012)]()
+[Carvunis et al, Nature (2012)](http://www.ncbi.nlm.nih.gov/pubmed/22722833)
 
 From the supplementary:
 
