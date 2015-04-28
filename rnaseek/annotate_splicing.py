@@ -1,0 +1,3 @@
+
+
+class SpliceAnnotator(object):
