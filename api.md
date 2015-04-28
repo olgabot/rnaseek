@@ -49,6 +49,13 @@ slick engineering.
             - Reading frame
             - Translation
             - Codon adaptation index
+        - Overlap with repetitive elements
+            - RepBase
+        - `RNAhybrid`: microRNA target sites
+        - mirbase: microRNA birth sites in the introns
+        - Experimental annotation
+            - CLIP/ChIP-Seq binding
+         - RNA binding protein motifs
             
             
 Given a translation, I want to be able to compute things similar to 
@@ -72,8 +79,12 @@ From the supplementary:
 - Predict ...
     - Protein domains
         - *Pfam-A `hmmscan`*
-            - From Pfam-A, can then use `pfam2go` to get gene ontology 
-              annotation of the domains
+            - From Pfam-A, then to aggregate the domain types:
+                - `pfam2go` to get gene ontology annotation of the domains
+                - Use the Clans from pfam
+            - **For splicing only**:
+                - Aggregate changes in predicted protein domains, i.e. 
+                  "domain disruption"
             - License?
          - DomPred
     - Disordered protein regions
