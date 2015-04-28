@@ -86,3 +86,18 @@ From the supplementary:
         - [COILS](http://www.ch.embnet.org/software/COILS_form.html)
     - Transmembrane regions
         - [TMHMM](http://www.cbs.dtu.dk/services/TMHMM-2.0/)
+        
+### API Design constraints
+
+From these descriptions, I see three main possible inputs:
+
+- MISO ids
+- Bed files
+- Fasta files
+    - raw DNA/mRNA
+    - protein fasta
+
+As a result, the objects that operate on miso IDs should be independent of the
+objects that operate on bed files, which are independent of those that operate
+on fasta files. This will allow for maximum portability, and allow the user
+to start the annotation process at any point.
