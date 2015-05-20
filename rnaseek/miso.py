@@ -11,7 +11,7 @@ from Bio.SeqRecord import SeqRecord
 
 class SpliceAnnotator(object):
 
-    def __init__(self, miso_ids, splice_type, genome):
+    def __init__(self, miso_ids, splice_type, genome, genome_fasta=None):
         self.miso_ids = miso_ids
         self.splice_type = splice_type
         self.genome_fasta = genome_fasta
