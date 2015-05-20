@@ -513,8 +513,7 @@ class SpliceAnnotator(object):
         isoform_seqs = defaultdict(list)
         isoform_translations = defaultdict(lambda: defaultdict(list))
 
-        for exon_ids, miso_id, exon_seqs in zip(self.exon_ids, self.miso_ids,
-                                                self.exon_fastas):
+        for exon_ids, miso_id in zip(self.exon_ids, self.miso_ids):
             # print seq1.name
 
             try:
@@ -543,11 +542,10 @@ class SpliceAnnotator(object):
             transcripts_per_isoform = isoform1s, isoform2s
 
 
-            exon_seqs_per_isoform = self.splice_type_exons(exon_seqs)
+            # exon_seqs_per_isoform = self.splice_type_exons(exon_seqs)
 
-            for i, (transcripts, cds_isoform, exon_seq) in enumerate(
-                    zip(transcripts_per_isoform, cds_ids_per_isoform,
-                    exon_seqs_per_isoform)):
+            for i, (transcripts, cds_isoform) in enumerate(
+                    zip(transcripts_per_isoform, cds_ids_per_isoform)):
                 event_isoform = '{}_isoform{}'.format(miso_id, i + 1)
                 # Check if this is the reversed strand
                 reverse = exon_ids[0][-1] == '-'
@@ -569,7 +567,9 @@ class SpliceAnnotator(object):
                             cds_in_correct_order = False
                     if cds_in_correct_order and correct_number_of_cds:
                         frame = cds[0].frame
-                        seq = ''.join(s.seq for s in exon_seq)
+                        cds_seqs = [c.sequence(self.genome_fasta,
+                                               use_strand=True) for c in cds]
+                        seq = ''.join(s.seq for s in cds_seqs)
                         seq_translated = seq[int(frame):].translate()
                         if seq_translated in isoform_translations[i]:
                             continue
