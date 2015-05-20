@@ -36,7 +36,8 @@ class SpliceAnnotator(object):
         self.splice_type = splice_type
         self.genome_fasta = genome_fasta
 
-        ## Only use miso IDs that are in the genome fasta
+        # Only use miso IDs that are in the genome fasta, so the order of the
+        # exon_bedtools and exon_fastas are exactly the same.
         fa = Fasta('/Users/olga/genomes/hg19/hg19.fa')
         chromosomes = fa.keys()
         n_bad_chrom = sum(1 for x in self.miso_ids
@@ -67,12 +68,13 @@ class SpliceAnnotator(object):
                 range(1, self.n_exons))
 
         if genome_fasta is not None:
-            self.exon_fasta = map(lambda x: x.sequence(fi=self.genome_fasta,
-                                                       s=True).seqfn,
+            self.exon_fastas = map(lambda x: x.sequence(fi=self.genome_fasta,
+                                                        s=True).seqfn,
                                   self.exon_bedtools)
-            self.intron_fasta = map(lambda x:
-                                    x.sequence(fi=self.genome_fasta, s=True).seqfn,
-                                    self.intron_bedtools)
+            self.intron_fastas = map(lambda x:
+                                     x.sequence(fi=self.genome_fasta,
+                                                s=True).seqfn,
+                                     self.intron_bedtools)
 
         # Get five prime splice sites as bedtools for everything except
         # the last exon
@@ -512,7 +514,7 @@ class SpliceAnnotator(object):
         isoform_translations = defaultdict(lambda: defaultdict(list))
 
         for exon_ids, miso_id, exon_seqs in zip(self.exon_ids, self.miso_ids,
-                                                self.exon_fasta):
+                                                self.exon_fastas):
             # print seq1.name
 
             try:
