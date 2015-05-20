@@ -12,6 +12,24 @@ from Bio.SeqRecord import SeqRecord
 class SpliceAnnotator(object):
 
     def __init__(self, miso_ids, splice_type, genome, genome_fasta=None):
+        """
+
+        Parameters
+        ----------
+        miso_ids : list-like
+            List of strings of miso ids, e.g.
+            "chr1:100:200:+@chr1:300:400:+@chr1:500:600:" is an example of
+            a skipped exon MISO ID, where the middle exon is alternative.
+        splice_type : str
+            The type of splicing event. Currently only 'SE' (skipped exon) and
+             'MXE' (mutually exclusive exon) are supported
+        genome : str
+            Name of the genome, e.g. "hg19" or "mm10"
+        genome_fasta : str
+            Location of the (indexed!) genome fasta file. If it's not indexed,
+            grabbing the sequences of features won't work. You'll need to use
+            "faidx" to index the genome fasta file
+        """
         self.miso_ids = miso_ids
         self.splice_type = splice_type
         self.genome_fasta = genome_fasta
