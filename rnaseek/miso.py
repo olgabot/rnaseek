@@ -11,7 +11,7 @@ from Bio.SeqRecord import SeqRecord
 
 class SpliceAnnotator(object):
 
-    def __init__(self, miso_ids, splice_type):
+    def __init__(self, miso_ids, splice_type, genome):
         self.miso_ids = miso_ids
         self.splice_type = splice_type
         self.genome_fasta = genome_fasta
@@ -509,15 +509,14 @@ class SpliceAnnotator(object):
 
             exon_seqs_per_isoform = self.splice_type_exons(exon_seqs)
 
-            for i, (
-                    transcript_isoform, cds_isoform, exon_seq_isoform) in enumerate(
-                    transcripts_per_isoform, cds_ids_per_isoform,
-                    exon_seqs_per_isoform):
+            for i, (transcripts, cds_isoform, exon_seq) in enumerate(
+                    zip(transcripts_per_isoform, cds_ids_per_isoform,
+                    exon_seqs_per_isoform)):
                 event_isoform = '{}_isoform{}'.format(miso_id, i + 1)
                 # Check if this is the reversed strand
                 reverse = exon_ids[0][-1] == '-'
 
-                for t in transcript_isoform:
+                for t in transcripts:
                     name = '{}_{}'.format(event_isoform, t.id)
                     cds = list(gffdb.children(t, featuretype='CDS',
                                               reverse=reverse,
@@ -526,7 +525,7 @@ class SpliceAnnotator(object):
                                           sum(map(lambda x: x.startswith(c.id),
                                                   cds)) > 0]
                     correct_number_of_cds = \
-                        len(cds_in_splice_form) == len(cds_ids_per_isoform)
+                        len(cds_in_splice_form) == len(cds_isoform)
                     cds_in_correct_order = True
                     for (i, c), (j, d) in zip(cds_in_splice_form,
                                               cds_in_splice_form[1:]):
@@ -534,7 +533,7 @@ class SpliceAnnotator(object):
                             cds_in_correct_order = False
                     if cds_in_correct_order and correct_number_of_cds:
                         frame = cds[0].frame
-                        seq = ''.join(s.seq for s in exon_seqs_per_isoform)
+                        seq = ''.join(s.seq for s in exon_seq)
                         seq_translated = seq[int(frame):].translate()
                         if seq_translated in isoform_translations[i]:
                             continue
