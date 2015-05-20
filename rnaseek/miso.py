@@ -53,11 +53,12 @@ class SpliceAnnotator(object):
             map(lambda x: self.coords_to_intron_bedtool(self.exon_coords),
                 range(self.n_exons))
 
-        self.exon_fasta = map(lambda x: x.sequence(fi=self.genome_fasta,
-                                                   s=True), self.exon_bedtools)
-        self.intron_fasta = map(lambda x:
-                                x.sequence(fi=self.genome_fasta, s=True),
-                                self.intron_bedtools)
+        if genome_fasta is not None:
+            self.exon_fasta = map(lambda x: x.sequence(fi=self.genome_fasta,
+                                                       s=True), self.exon_bedtools)
+            self.intron_fasta = map(lambda x:
+                                    x.sequence(fi=self.genome_fasta, s=True),
+                                    self.intron_bedtools)
 
         # Get five prime splice sites as bedtools for everything except
         # the last exon
