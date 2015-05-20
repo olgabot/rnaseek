@@ -1,10 +1,12 @@
 from collections import defaultdict
 import sys
+import warnings
 
 import numpy as np
 import gffutils
 import pandas as pd
 import pybedtools
+from pyfaidx import Fasta
 
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
@@ -34,6 +36,17 @@ class SpliceAnnotator(object):
         self.splice_type = splice_type
         self.genome_fasta = genome_fasta
 
+        ## Only use miso IDs that are in the genome fasta
+        fa = Fasta('/Users/olga/genomes/hg19/hg19.fa')
+        chromosomes = fa.keys()
+        n_bad_chrom = sum(1 for x in self.miso_ids
+                                        if x.split(':')[0] not in chromosomes)
+        sys.stderr.write("Removing {} miso ids whose chromosomes do not match"
+                         " with the given genome fasta"
+                         " file".format(n_bad_chrom))
+        self.miso_ids = [x for x in self.miso_ids
+                         if x.split(':')[0] in chromosomes]
+
         self.n_exons = None
         if splice_type == 'SE':
             self.n_exons = 3
@@ -50,14 +63,15 @@ class SpliceAnnotator(object):
                                  zip(*self.exon_coords))
         # Make a bedtool for each intron
         self.intron_bedtools = \
-            map(lambda x: self.coords_to_intron_bedtool(self.exon_coords),
-                range(self.n_exons))
+            map(lambda x: self.coords_to_intron_bedtool(self.exon_coords, x),
+                range(1, self.n_exons))
 
         if genome_fasta is not None:
             self.exon_fasta = map(lambda x: x.sequence(fi=self.genome_fasta,
-                                                       s=True), self.exon_bedtools)
+                                                       s=True).seqfn,
+                                  self.exon_bedtools)
             self.intron_fasta = map(lambda x:
-                                    x.sequence(fi=self.genome_fasta, s=True),
+                                    x.sequence(fi=self.genome_fasta, s=True).seqfn,
                                     self.intron_bedtools)
 
         # Get five prime splice sites as bedtools for everything except
