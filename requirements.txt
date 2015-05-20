@@ -1,5 +1,6 @@
 wheel==0.23.0
 pandas
+cython>=0.22
 biopython
 pybedtools
 gffutils
