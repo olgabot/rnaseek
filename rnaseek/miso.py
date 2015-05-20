@@ -535,7 +535,7 @@ class SpliceAnnotator(object):
                                                          cds_ids)
 
             # Remove all overlapping isoforms
-            intersect = transcripts_per_isoform[0].intersect(
+            intersect = transcripts_per_isoform[0].intersection(
                 transcripts_per_isoform[1])
             isoform1s = transcripts_per_isoform[0].difference(intersect)
             isoform2s = transcripts_per_isoform[1].difference(intersect)
@@ -557,7 +557,7 @@ class SpliceAnnotator(object):
                                               order_by='start'))
                     cds_in_splice_form = [(i, c) for c in cds if
                                           sum(map(lambda x: x.startswith(c.id),
-                                                  cds)) > 0]
+                                                  cds_isoform)) > 0]
                     correct_number_of_cds = \
                         len(cds_in_splice_form) == len(cds_isoform)
                     cds_in_correct_order = True
