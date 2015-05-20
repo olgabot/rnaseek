@@ -41,12 +41,13 @@ class SpliceAnnotator(object):
             self.n_exons = 4
 
         self.exon_ids = map(self.miso_id_to_exon_ids, self.miso_ids)
-        self.exon_coords = map(self.miso_exon_to_coords, self.miso_ids)
+        self.exon_coords = map(lambda x: map(self.miso_exon_to_coords,
+                                             x.split('@')),
+                               self.miso_ids)
 
         # Make a bedtool for each exon
         self.exon_bedtools = map(self.coords_to_bedtool,
                                  zip(*self.exon_coords))
-
         # Make a bedtool for each intron
         self.intron_bedtools = \
             map(lambda x: self.coords_to_intron_bedtool(self.exon_coords),
