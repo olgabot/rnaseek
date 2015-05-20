@@ -28,7 +28,8 @@ slick engineering.
 
 #### Future plans
 
-- Alternatively, the user should be able to supply a `.bed` file, so all these things could be computed for any arbitrary bed file.
+- Alternatively, the user should be able to supply a `.bed` file, so all these 
+  things could be computed for any arbitrary bed file.
 
 ### Outputs
 
