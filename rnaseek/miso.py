@@ -617,3 +617,158 @@ class SpliceAnnotator(object):
             isoform1 = exons[0], exons[1], exons[3]
             isoform2 = exons[0], exons[2], exons[3]
         return isoform1, isoform2
+
+
+
+
+def write_sashimi_plot_settings(filename,  bam_prefix, miso_prefix,
+                                bam_files, miso_files, mapped_reads,
+                               colors, splice_type='SE',
+                               fig_width=7, fig_height=5, intron_scale=30,
+                               exon_scale=4, logged=False, font_size=6, ymax=150,
+                               show_posteriors=True,
+                               bar_posteriors=True,
+                               number_junctions=True,
+                               resolution=0.5,
+                               posterior_bins=40,
+                               gene_posterior_ratio=5,
+                               bar_color='#4c72b0',
+                               bf_thresholds=[0, 1, 2, 5, 10, 20],
+                               sample_labels=None, reverse_minus=False):
+    """Write a settings file for making publication-quality Sashimi plots of exon junctions
+
+    Note that the lists provided, ``bam_files``, ``miso_files``, ``mapped_reads`` and ``colors``
+    must all be in the exact same sample order. This is not checked, but you will get weird
+    plots if you do otherwise.
+
+    Parameters
+    ----------
+    filename : str
+        Name of the file to write
+    bam_prefix : str
+        Directory where BAM files are
+    miso_prefix : str
+        Directory where MISO output is
+    bam_files : list
+        List of bam file locations
+    miso_files : list
+        List of miso output locations (Samples must be in same order as bam files)
+    colors : list, optional
+        List of hexadecimal colors to use, e.g. ['#55a868', '#55a868']
+    fig_width : int, optional
+        Width of the figure, in inches
+    fig_height : int, optional
+        Height of the figure, in inches
+    intron_scale : float, optional
+        Factor to scale down the introns by in the figure
+    exon_scale : float, optional
+        Factor to scale down exons by in th efigure
+    logged : bool, optional
+        If True, use a log-scale when plotting
+    font_size : float, optional
+        Size of the text on the plot
+    ymax : float, optional
+        Maximum value of the y-axis
+    show_posteriors : bool, optional
+        If True, plot posterior distributions inferred by MISO
+    bar_posteriors : bool, optional
+        If True, plot posterior distributions as bar graphs
+    number_junctions : bool, optional
+        If True, plot the number of reads in each junction
+    resolution : float, optional
+        Resolution of the figure? Unclear
+    posterior_bins : int, optional
+        Number of bins to plot posterior distribution
+    gene_posterior_ratio : int, optional
+        ??
+    bar_color : color, optional
+        Color of the bar plots for Bayes factor distribution (default Seaborn blue)
+    bf_thresholds : list, optional
+        Bayes factors thresholds to use for --plot-bf-dist
+    reverse_minus : bool, optional
+        If True, "-" strand events will go from left to right instead of right to left
+    """
+    sys.stdout.write('Writing Sashimi plot settings to {0} ...\n'.format(filename))
+
+    if colors is not None:
+        colors_list = '[{0}]'.format(',\n\t'.join(map(lambda x: '"{0}"'.format(x), colors)))
+        colors = 'colors = {0}'.format(colors_list)
+    else:
+        colors = ''
+    if sample_labels is not None:
+        sample_labels_list = '[{0}]'.format(',\n\t'.join(map(lambda x: '"{0}"'.format(x), sample_labels)))
+        sample_labels = 'sample_labels = {0}'.format(sample_labels_list)
+    else:
+        sample_labels = ''
+
+    with open(filename, 'w') as f:
+        f.write("""
+[data]
+# directory where BAM files are
+bam_prefix = {0}
+# directory where MISO output is
+miso_prefix = {1}
+
+bam_files = {2}
+miso_files = {3}
+
+[plotting]
+# Dimensions of figure to be plotted (in inches)
+fig_width = {4}
+fig_height = {5}
+# Factor to scale down introns and exons by
+intron_scale = {6}
+exon_scale = {7}
+# Whether to use a log scale or not when plotting
+logged = {8}
+font_size = {9}
+
+# Max y-axis
+ymax = {10}
+
+# Whether to plot posterior distributions inferred by MISO
+show_posteriors = {11}
+
+# Whether to show posterior distributions as bar summaries
+bar_posteriors = {12}
+
+# Whether to plot the number of reads in each junction
+number_junctions = {13}
+
+resolution = {14}
+posterior_bins = {15}
+gene_posterior_ratio = {16}
+
+# List of colors for read denisites of each sample
+{17}
+
+# Number of mapped reads in each sample
+# (Used to normalize the read density for RPKM calculation)
+coverages = {18}
+
+# Bar color for Bayes factor distribution
+# plots (--plot-bf-dist)
+# Paint them Seaborn "deep" palette blue
+bar_color = "{19}"
+
+# Bayes factors thresholds to use for --plot-bf-dist
+bf_thresholds = {20}
+
+# Renamed sample ids
+{21}
+
+# Whether or not to reverse the minus strand events
+reverse_minus = {22}
+
+""".format(
+                bam_prefix, miso_prefix,
+        '[{0}]'.format(',\n\t'.join(map(lambda x: '"{0}"'.format(x), bam_files))),
+        '[{0}]'.format(',\n\t'.join(map(lambda x: '"{0}/{1}"'.format(x, splice_type), miso_files))),
+                fig_width, fig_height, intron_scale, exon_scale, logged, font_size, ymax, show_posteriors,
+                bar_posteriors, number_junctions, resolution, posterior_bins, gene_posterior_ratio,
+                colors,
+                '[{0}]'.format(',\n\t'.join(map(lambda x: '{0}'.format(int(x)), mapped_reads))),
+                bar_color, bf_thresholds,
+                sample_labels, reverse_minus
+        ))
+    sys.stdout.write('\tDone.')
