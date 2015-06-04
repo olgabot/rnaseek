@@ -633,7 +633,7 @@ def write_sashimi_plot_settings(filename,  bam_prefix, miso_prefix,
                                posterior_bins=40,
                                gene_posterior_ratio=5,
                                bar_color='#4c72b0',
-                               bf_thresholds=[0, 1, 2, 5, 10, 20],
+                               bf_thresholds=(0, 1, 2, 5, 10, 20),
                                sample_labels=None, reverse_minus=False):
     """Write a settings file for making publication-quality Sashimi plots of exon junctions
 
