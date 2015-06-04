@@ -1,16 +1,36 @@
-# Config file for automatic testing at travis-ci.org
-
 language: python
 
 python:
-  - "3.4"
-  - "3.3"
-  - "2.7"
-  - "2.6"
-  - "pypy"
+- '2.6'
+- '2.7'
+- '3.3'
+- '3.4'
 
-# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -r requirements.txt
+before_install:
+- if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
+  -O miniconda.sh; else wget http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Linux-x86_64.sh
+  -O miniconda.sh; fi
+- chmod +x miniconda.sh
+- "./miniconda.sh -b"
+- if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then export PATH=~/miniconda/bin:$PATH;
+  else export PATH=~/miniconda3/bin/:$PATH; fi
+- conda update --yes conda
+- export COVERALLS_SERVICE_NAME=travis-ci
+- export COVERALLS_REPO_TOKEN=JxDg9pYS5oO6mwWqkGREUMaVNmBmydnut
+install:
+- conda create -n testenv --yes python=$TRAVIS_PYTHON_VERSION pip
+- source activate testenv
+- conda install --yes cython pandas pytest biopython
+- pip install -r requirements.txt
+- pip install .
 
-# command to run tests, e.g. python setup.py test
-script: python setup.py test
+script: py.test
+
+deploy:
+  provider: pypi
+  user: olgabot
+  password:
+    secure: LnrOOXcY0kn3EBoTuS7zrMp22SRoU36wENZKqFQn0tYizqqOcI6r+FDvZtBWQ5iNO6D9sHUj+ufEGM9fk7fmLO1vL8ipLFOOI3e5LEHvy1LXpRXJcgLy7kImt73lHymjpdeOYg+NGqsmCAHkpmrDOAo+j6Kt74/gi0h2BRKOtVA=
+  on:
+    tags: true
+    repo: olgabot/rnaseek
