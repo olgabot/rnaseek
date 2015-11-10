@@ -38,15 +38,16 @@ class SpliceAnnotator(object):
 
         # Only use miso IDs that are in the genome fasta, so the order of the
         # exon_bedtools and exon_fastas are exactly the same.
-        fa = Fasta('/Users/olga/genomes/hg19/hg19.fa')
-        chromosomes = fa.keys()
-        n_bad_chrom = sum(1 for x in self.miso_ids
-                                        if x.split(':')[0] not in chromosomes)
-        sys.stderr.write("Removing {} miso ids whose chromosomes do not match"
-                         " with the given genome fasta"
-                         " file".format(n_bad_chrom))
-        self.miso_ids = [x for x in self.miso_ids
-                         if x.split(':')[0] in chromosomes]
+        if self.genome_fasta is not None:
+            fa = Fasta(self.genome_fasta)
+            chromosomes = fa.keys()
+            n_bad_chrom = sum(1 for x in self.miso_ids
+                                            if x.split(':')[0] not in chromosomes)
+            sys.stderr.write("Removing {} miso ids whose chromosomes do not match"
+                             " with the given genome fasta"
+                             " file".format(n_bad_chrom))
+            self.miso_ids = [x for x in self.miso_ids
+                             if x.split(':')[0] in chromosomes]
 
         self.n_exons = None
         if splice_type == 'SE':
