@@ -77,21 +77,6 @@ class SpliceAnnotator(object):
                                                 s=True).seqfn,
                                      self.intron_bedtools)
 
-        # Get five prime splice sites as bedtools for everything except
-        # the last exon
-        self.five_prime_splice_sites = \
-            map(lambda x: x.flank(genome=genome, l=0, r=6,
-                                  s=True).slop(genome=genome, r=0, l=3,
-                                               s=True),
-                self.exon_bedtools[:-1])
-
-        # Get three prime splice sites as bedtools for everything except
-        # the first exon
-        self.three_prime_splice_sites = \
-            map(lambda x: x.flank(genome='hg19', l=20, r=0,
-                                  s=True).slop(genome=genome, r=3, l=0,
-                                               s=True),
-                self.exon_bedtools[1:])
 
     def miso_exon_to_gencode_exon(self, exon):
         """Convert a single miso exon to one or more gffutils database exon id
